@@ -10,8 +10,9 @@ router.get('/', async (req, res) => {
 router.get('/refresh', () => {
   // console.log(radioController.refresh_list())
 })
-router.get('/baseUrl', (req, res) => {
-  let tmp = radioController.baseUrl()
+router.get('/baseUrl', async(req, res) => {
+  let tmp = await radioController.baseUrl()
+  console.log(tmp)
   res.status(200).send(tmp)
 })
 
