@@ -5,7 +5,6 @@ const dns = require('dns');
 const { json } = require("express");
 const util = require('util');
 const resolveSrv = util.promisify(dns.resolveSrv);
-console.log("s")
 /**
  * Get a list of base urls of all available radio-browser servers
  * Returns: array of strings - base urls of radio-browser servers
@@ -45,6 +44,7 @@ const setBaseUrl =(url, setUrl)=>{
   setUrl.BASE_URL =url
 }
 
+// dns resolve base Radio_LIST_API url 
 const baseUrl =async()=>{
 if(urlObj.BASE_URL ===null){
  try{
@@ -74,6 +74,9 @@ let isBaseUrlNull =(isUrlNull)=>{
   // if(urlObj.isUrlNull === null);
   return true
 }
+
+
+// retrive genres list from RADIO_LIST_API https://nl1.api.radio-browser.info
 let genresList =async ()=>{
  if(isBaseUrlNull(urlObj)){
   return baseUrl()

@@ -2,10 +2,7 @@
 const radioServices = require("../services/radio")
 
 const radio_list = async (req, res) => {
-  let t  =await radioServices.genresList()
-
-console.log("sd")
-  return t
+  return await radioServices.genresList()
 }
 
 
