@@ -5,7 +5,7 @@ const dns = require('dns');
 const { json } = require("express");
 const util = require('util');
 const resolveSrv = util.promisify(dns.resolveSrv);
-
+console.log("s")
 /**
  * Get a list of base urls of all available radio-browser servers
  * Returns: array of strings - base urls of radio-browser servers
@@ -28,114 +28,71 @@ function get_radiobrowser_base_url_random() {
   });
 }
 
-// get_radiobrowser_base_urls().then(hosts => {
-//   console.log("All available urls")
-//   console.log("------------------")
-//   for (let host of hosts) {
-//     console.log(host);
-//   }
-//   console.log();
-
-//   return get_radiobrowser_base_url_random();
-// }).then(random_host => {
-//   console.log("Random base url")
-//   console.log("------------------")
-//   console.log(random_host);
-// });
-
-const radioLink = {
-  baseURL: "n",
-  // @get store generes_List
-  generes_all_List: []
 
 
+let urlObj ={
+  BASE_URL:null,
+  genres_all_List:[]
 }
-const radio_param = {
-  // @get list
+const constant_radio_param = {
+    // @get list
   genres_list: '/json/tags',
   // @params {string} %s
   genre_tag_list: '/json/stations/byname/%s',
 }
 
-function radioReactiveProxy(target) {
-  const radioLinkHandler = {
-    get(target, prop, receiver) {
-      const result = Reflect.get(target, prop, receiver);
-      tracker(target, prop)
-      return result
-    },
-    set(target, prop, val, receiver) {
-      Reflect.set(target, prop, val, receiver);
-      trigger(target, prop)
-      return 'done'
-    }
-  }
-  return new Proxy(target, radioLinkHandler);
+const setBaseUrl =(url, setUrl)=>{  
+  setUrl.BASE_URL =url
 }
 
-let activeEffect = null
-let radioProxy = radioReactiveProxy(radioLink)
-
-function effect(fn) {
-  activeEffect = fn
-  if (activeEffect) {
-    activeEffect();
-    activeEffect = null
+const baseUrl =async()=>{
+if(urlObj.BASE_URL ===null){
+ try{
+   let url = await  get_radiobrowser_base_url_random();
+   setBaseUrl(url, urlObj)
+  return urlObj.BASE_URL;
+ }catch(e){
+   console.log("server is down")
+ }
+} else{
+    return urlObj.BASE_URL;
   }
 }
 
-let deb = new Set();
-
-let tracker = () => {
-  if (activeEffect) {
-    deb.add(activeEffect)
+const genres_list = async (urlObj, baseUrl, genres_list)=>{
+  try{
+    // console.log(baseUrl+genres_list)
+  let data = await axios.get(baseUrl + genres_list)
+  urlObj.genres_all_List =data; 
+  return urlObj.genres_all_List;
+  }catch(e){
+    console.log("fail at fetching genres list")
   }
 }
 
-
-let trigger = () => {
-  deb.forEach((trigger) => {
-    trigger()
-  })
+let isBaseUrlNull =(isUrlNull)=>{
+  // if(urlObj.isUrlNull === null);
+  return true
 }
-get_radiobrowser_base_url_random()
-  .then(random_host => {
-    return radioProxy.baseURL = random_host
-  })
-effect(async () => {
-  if (radioProxy.baseURL == "n") { return }
-  try {
-    let url = radioProxy.baseURL + radio_param.genres_list;
-
-    let t = await axios.get(url);
-    // console.log(t)
-
-    // let out = JSON.stringify(t)
-    radioLink.generes_all_List = t['data'];
-
-  } catch {
-    throws("fetching error")
+let genresList =async ()=>{
+ if(isBaseUrlNull(urlObj)){
+  return baseUrl()
+     .then(()=>genres_list(urlObj, urlObj.BASE_URL, constant_radio_param.genres_list)
+    ).then(()=>(urlObj.genres_all_List)
+   )
+  } else{
+    genres_list(urlObj, baseUrl, constant_radio_param.genres_list)
   }
-})
-
-let genresList = () => {
-  return radioProxy.generes_all_List;
-}
-
-let baseUrl = () => {
-  return radioProxy.baseURL;
 }
 let refreshRadioLink = () => {
   get_radiobrowser_base_url_random()
     .then(random_host => {
-      return radioProxy.baseURL = random_host
+      urlObj.BASE_URL = random_host
     })
-
 }
 
-module.exports = {
+module.exports ={
   genresList,
   refreshRadioLink,
   baseUrl
 }
-

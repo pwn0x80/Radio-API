@@ -2,9 +2,9 @@
 const radioController = require("../controllers/radioController");
 const router = require("express").Router();
 
-router.get('/', (req, res) => {
-  let t = radioController.radio_list()
-  res.status(200).json(t)
+router.get('/', async (req, res) => {
+  let t = await radioController.radio_list()
+  res.status(200).json(t.data)
 })
 //TODO
 router.get('/refresh', () => {
